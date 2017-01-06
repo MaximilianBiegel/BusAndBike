@@ -1,14 +1,14 @@
 package com.example.biegel.busandbike;
 
+import android.app.ProgressDialog;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.AsyncTask;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -19,6 +19,10 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
@@ -48,7 +52,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     .build();
         }
 
-        String restURL = "http://www.androidexample.com/media/webservice/JsonReturn.php";
+        String restURL = "https://developer.jcdecaux.com/rest/vls/stations/Luxembourg.json";
         new RestOperation().execute(restURL);
 
     }
@@ -130,21 +134,42 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private class RestOperation extends AsyncTask<String, Void, Void> {
 
+        ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
+        String data;
+
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+
+            progressDialog.setTitle("Please wait...");
+            progressDialog.show();
         }
 
 
         @Override
         protected Void doInBackground(String... params) {
+            File input = new File("Luxembourg.json");
+            String content;
+            try {
+                //FileReader fr = new FileReader(input);
+                Scanner sc = new Scanner(input);
+                while (sc.hasNextLine()){
+                    Log.i("jo: ",sc.nextLine());
+                }
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+
             return null;
         }
 
         @Override
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
+
+            progressDialog.dismiss();
+
         }
 
     }
