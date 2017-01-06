@@ -23,6 +23,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
     private GoogleMap mMap;
     private GoogleApiClient mGoogleApiClient;
+    private Boolean alreadySet =false;
     private Location mLastLocation;
     private LatLng currentCoordinates;
 
@@ -101,7 +102,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             currentCoordinates = new LatLng(mLastLocation.getLatitude(),mLastLocation.getLongitude());
             //mLatitudeText.setText(String.valueOf(mLastLocation.getLatitude()));
             //mLongitudeText.setText(String.valueOf(mLastLocation.getLongitude()));
-            mMap.addMarker(new MarkerOptions().position(currentCoordinates).title("HOME"));
+            if (alreadySet == false) {
+                mMap.addMarker(new MarkerOptions().position(currentCoordinates).title("HOME"));
+                alreadySet = true;
+            }
 
         }
     }
