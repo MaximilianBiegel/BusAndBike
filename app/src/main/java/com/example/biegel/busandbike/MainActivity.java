@@ -2,6 +2,7 @@ package com.example.biegel.busandbike;
 
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -23,9 +24,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
     private GoogleMap mMap;
     private GoogleApiClient mGoogleApiClient;
-    private Boolean alreadySet =false;
+    private Boolean alreadySet = false;
     private Location mLastLocation;
     private LatLng currentCoordinates;
+
+    private VelohStation[] velohStations;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +47,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     .addApi(LocationServices.API)
                     .build();
         }
+
+        String restURL = "http://www.androidexample.com/media/webservice/JsonReturn.php";
+        new RestOperation().execute(restURL);
+
     }
 
 
@@ -99,10 +106,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         if (mLastLocation != null) {
-            currentCoordinates = new LatLng(mLastLocation.getLatitude(),mLastLocation.getLongitude());
+            currentCoordinates = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
             //mLatitudeText.setText(String.valueOf(mLastLocation.getLatitude()));
             //mLongitudeText.setText(String.valueOf(mLastLocation.getLongitude()));
-            if (alreadySet == false) {
+            if (!alreadySet) {
                 mMap.addMarker(new MarkerOptions().position(currentCoordinates).title("HOME"));
                 alreadySet = true;
             }
@@ -118,6 +125,27 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
+
+    private class RestOperation extends AsyncTask<String, Void, Void> {
+
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+
+        @Override
+        protected Void doInBackground(String... params) {
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
+        }
 
     }
 }
