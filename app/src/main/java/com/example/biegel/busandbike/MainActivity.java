@@ -27,6 +27,9 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.Vector;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback,
@@ -38,6 +41,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LatLng currentCoordinates;
 
     private Vector<VelohStation> velohStations = new Vector<VelohStation>() ;
+    private Vector<BusStop> busstops = new Vector<BusStop>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,7 +61,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     .build();
         }
 
-        String restURL = "https://developer.jcdecaux.com/rest/vls/stations/Luxembourg.json";
+        String restURL = "http://travelplanner.mobiliteit.lu/restproxy/departureBoard?accessId=cdt&id=A=1@O=Luxembourg,%20Gare%20Centrale@X=6,133645@Y=49,600670@U=82@L=200405035@B=1@p=1459856195&format=json";     //"https://data.public.lu/en/reuses/all-bus-train-stops/";
+        Log.i("switch",restURL);
         new RestOperation().execute(restURL);
 
     }
@@ -149,14 +154,61 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
            // progressDialog.setTitle("Please wait...");
             //progressDialog.show();
+            try {
+                data += "&" + URLEncoder.encode("data","UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
         }
 
 
         @Override
         protected Void doInBackground(String... params) {
-            String content = loadJSONFromAsset();
-            //System.out.println(content);
+            String content = loadJSONFromAsset("Luxembourg.json");
+            String busContent = loadJSONFromAsset("StopList.txt");
+            Log.i("BUSOUT",busContent);
+
+            URL url;
+
+            //RETRIEVE BUSSTOPS
             try {
+
+                String[] stops = busContent.split("id=A=1@O=");
+                if (stops.length > 1) {
+                    for (int i = 1; i < stops.length; i++){
+                        Log.i("WHAT",stops[i]);
+                        // EXTRACT BUS DATA
+                        String[] temp = stops[i].split("@X=");
+                        String name = temp[0];
+                        Log.i("STOP",temp[0]);
+                        Log.i("STOP",temp[1]);
+
+                        String[] x = temp[1].split("@Y=");
+                        Log.i("x0",x[0]);
+                        Double longitude = Double.parseDouble(x[0].replace(",","."));
+                        Log.i("LAT",x[1]);
+                        String[] y = x[1].split("@U=");
+                        Double latitude = Double.parseDouble(y[0].replace(",","."));
+
+                        BusStop stop = new BusStop(name,latitude,longitude);
+                        Log.i("STOP",stop.toString());
+                        busstops.addElement(stop);
+                    }
+                }
+ /*
+                JSONArray busarr = new JSONArray(busContent);
+                for (int i = 0; i< busarr.length(); i++) {
+                    JSONObject obj = busarr.getJSONObject(i);
+                }
+
+                for (int i = 0; i< busarr.length(); i++){
+                    JSONObject obj = busarr.getJSONObject(i);
+
+                   // VelohStation vs = new VelohStation(numb,name,address,lat,lng);
+                    Log.i("BUSOUT",obj.toString());
+                }
+*/
+//              RETRIEVE VELOHSTATIONS
                 JSONArray arr = new JSONArray(content);
                 for (int i = 0; i< arr.length(); i++){
                     JSONObject obj = arr.getJSONObject(i);
@@ -193,6 +245,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     );
                 }
             }
+            if (busstops.size() > 1){
+                for (int k = 0; k< busstops.size(); k++){
+                    LatLng pos = new LatLng(busstops.get(k).getLatitude(),busstops.get(k).getLongitude());
+                    mMap.addMarker(new MarkerOptions().position(pos)
+                            .title(busstops.get(k).getName())
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE))
+                    );
+                }
+            }
             //progressDialog.dismiss();
 
         }
@@ -200,11 +261,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
 
-    public String loadJSONFromAsset() {
+    public String loadJSONFromAsset(String path) {
         String json = "";
         try {
 
-            InputStream is = getAssets().open("Luxembourg.json");
+            InputStream is = getAssets().open(path);
 
             int size = is.available();
 
@@ -217,6 +278,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             json = new String(buffer, "UTF-8");
 
         Log.i("Out","ending here?");
+            Log.i("Out",json);
         } catch (IOException ex) {
             ex.printStackTrace();
             return null;
