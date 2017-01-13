@@ -17,12 +17,17 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.Scanner;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Vector;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
@@ -32,7 +37,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Location mLastLocation;
     private LatLng currentCoordinates;
 
-    private VelohStation[] velohStations;
+    private Vector<VelohStation> velohStations = new Vector<VelohStation>() ;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -142,24 +147,35 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         protected void onPreExecute() {
             super.onPreExecute();
 
-            progressDialog.setTitle("Please wait...");
-            progressDialog.show();
+           // progressDialog.setTitle("Please wait...");
+            //progressDialog.show();
         }
 
 
         @Override
         protected Void doInBackground(String... params) {
-            File input = new File("Luxembourg.json");
-            String content;
+            String content = loadJSONFromAsset();
+            //System.out.println(content);
             try {
-                //FileReader fr = new FileReader(input);
-                Scanner sc = new Scanner(input);
-                while (sc.hasNextLine()){
-                    Log.i("jo: ",sc.nextLine());
+                JSONArray arr = new JSONArray(content);
+                for (int i = 0; i< arr.length(); i++){
+                    JSONObject obj = arr.getJSONObject(i);
+                    int numb = obj.getInt("number");
+                    String name = obj.getString("name");
+                    String address = obj.getString("address");
+                    Double lat = obj.getDouble("latitude");
+                    Double lng = obj.getDouble("longitude");
+                    VelohStation vs = new VelohStation(numb,name,address,lat,lng);
+                    Log.i("OUT",vs.toString());
+                    velohStations.addElement(vs);
                 }
-            } catch (FileNotFoundException e) {
+
+
+            } catch (JSONException e) {
                 e.printStackTrace();
             }
+
+
 
             return null;
         }
@@ -167,10 +183,45 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         @Override
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
-
-            progressDialog.dismiss();
+            if (velohStations.size() > 1){
+                for (int j =0; j< velohStations.size();j++){
+                    Log.i("Mark",velohStations.get(j).toString());
+                    LatLng pos = new LatLng(velohStations.get(j).getLatitude(),velohStations.get(j).getLongitude());
+                    mMap.addMarker(new MarkerOptions().position(pos)
+                            .title(velohStations.get(j).getName())
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
+                    );
+                }
+            }
+            //progressDialog.dismiss();
 
         }
+
+    }
+
+
+    public String loadJSONFromAsset() {
+        String json = "";
+        try {
+
+            InputStream is = getAssets().open("Luxembourg.json");
+
+            int size = is.available();
+
+            byte[] buffer = new byte[size];
+
+            is.read(buffer);
+
+            is.close();
+
+            json = new String(buffer, "UTF-8");
+
+        Log.i("Out","ending here?");
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            return null;
+        }
+        return json;
 
     }
 }

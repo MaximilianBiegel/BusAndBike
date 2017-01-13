@@ -10,6 +10,7 @@ public class VelohStation {
     private String address;
     private double latitude;
     private double longitude;
+    private int clicks;
 
     public VelohStation(int number,String name,String address, double latitude, double longitude){
         this.number = number;
@@ -17,6 +18,7 @@ public class VelohStation {
         this.address = address;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.clicks = 0;
 
     }
 
