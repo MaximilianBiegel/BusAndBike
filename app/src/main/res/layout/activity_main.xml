@@ -10,24 +10,35 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.example.biegel.busandbike.MainActivity">
 
-    <fragment
-        android:id="@+id/map"
-        android:name="com.google.android.gms.maps.SupportMapFragment"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+    <Button
+        android:text="Veloh"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignEnd="@+id/busStop"
+        android:id="@+id/nearestVeloh"
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:backgroundTint="@color/wallet_holo_blue_light"
+        android:onClick="searchNearestVelohStation" />
 
     <Button
         android:text="Bus "
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentStart="true"
         android:layout_marginStart="19dp"
-        android:layout_marginBottom="65dp"
         android:id="@+id/busStop"
         style="@style/Widget.AppCompat.Button.Colored"
-        android:backgroundTint="@drawable/cast_expanded_controller_seekbar_thumb"
+        android:backgroundTint="@android:color/holo_blue_dark"
         android:elevation="0dp"
-        android:onClick="searchNearestBustStop"/>
+        android:onClick="searchNearestBustStop"
+        android:layout_above="@+id/nearestVeloh"
+        android:layout_alignParentStart="true" />
+
+    <fragment
+        android:id="@+id/map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentTop="true" />
 
 </RelativeLayout>

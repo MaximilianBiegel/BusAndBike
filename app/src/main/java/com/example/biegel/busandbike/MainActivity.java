@@ -14,6 +14,7 @@ import android.view.View;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -100,7 +101,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         Location user = new Location("home");
         for(int i=0;i<busstops.size();i++){//busstops.size()
             Location.distanceBetween(ulu.latitude,ulu.longitude,busstops.get(i).getLatitude(),busstops.get(i).getLongitude(),result);
-            Log.i("Distance",""+result[0]);
             if (minDistance == -1){
                 minDistance = result[0];
             }
@@ -110,9 +110,38 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             }
         }
+        Log.i("Distance",""+result[0]);
         LatLng nearestStop = new LatLng(busstops.get(shortestPath).getLatitude(),busstops.get(shortestPath).getLongitude());
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(nearestStop,18));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(nearestStop,18));
 
+    }
+
+    public void searchNearestVelohStation(View view){
+        Log.i("BUTTON","BUTTON CLICKED");
+        float[] result = new float[1];
+        float minDistance = -1;
+        int shortestPath=0;
+
+        // USE of UNI LU Coordinates due to me not living in Lux
+        LatLng ulu = new LatLng(49.626883, 6.159250);
+        Location user = new Location("home");
+        for(int i=0;i<velohStations.size();i++){//busstops.size()
+            Location.distanceBetween(ulu.latitude,ulu.longitude,velohStations.get(i).getLatitude(),velohStations.get(i).getLongitude(),result);
+            if (minDistance == -1){
+                minDistance = result[0];
+            }
+            else if (minDistance > result[0]){
+                shortestPath = i;
+                minDistance = result[0];
+
+            }
+        }
+        Log.i("Distance",""+result[0]);
+        LatLng nearestStop = new LatLng(velohStations.get(shortestPath).getLatitude(),velohStations.get(shortestPath).getLongitude());
+        //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(nearestStop,18));
+        CameraUpdate location = CameraUpdateFactory.newLatLngZoom(
+                nearestStop, 18);
+        mMap.animateCamera(location);
     }
 
     protected void onStart() {
