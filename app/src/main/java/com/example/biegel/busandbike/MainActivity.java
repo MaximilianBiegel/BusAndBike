@@ -9,6 +9,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -68,15 +69,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
 
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
@@ -94,6 +87,32 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             mMap.setMyLocationEnabled(true);
         }
+    }
+
+    public void searchNearestBustStop(View view){
+        Log.i("BUTTON","BUTTON CLICKED");
+        float[] result = new float[1];
+        float minDistance = -1;
+        int shortestPath=0;
+
+        // USE of UNI LU Coordinates due to me not living in Lux
+        LatLng ulu = new LatLng(49.626883, 6.159250);
+        Location user = new Location("home");
+        for(int i=0;i<busstops.size();i++){//busstops.size()
+            Location.distanceBetween(ulu.latitude,ulu.longitude,busstops.get(i).getLatitude(),busstops.get(i).getLongitude(),result);
+            Log.i("Distance",""+result[0]);
+            if (minDistance == -1){
+                minDistance = result[0];
+            }
+            else if (minDistance > result[0]){
+                shortestPath = i;
+                minDistance = result[0];
+
+            }
+        }
+        LatLng nearestStop = new LatLng(busstops.get(shortestPath).getLatitude(),busstops.get(shortestPath).getLongitude());
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(nearestStop,18));
+
     }
 
     protected void onStart() {

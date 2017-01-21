@@ -16,4 +16,18 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <Button
+        android:text="Bus "
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="19dp"
+        android:layout_marginBottom="65dp"
+        android:id="@+id/busStop"
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:backgroundTint="@drawable/cast_expanded_controller_seekbar_thumb"
+        android:elevation="0dp"
+        android:onClick="searchNearestBustStop"/>
+
 </RelativeLayout>
