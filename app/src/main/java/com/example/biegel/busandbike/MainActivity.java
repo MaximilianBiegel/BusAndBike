@@ -10,6 +10,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.CompoundButton;
+import android.widget.ToggleButton;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -21,6 +23,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.json.JSONArray;
@@ -36,11 +39,19 @@ import java.util.Vector;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+    private static final float WALKINGRANGE = 500;
     private GoogleMap mMap;
     private GoogleApiClient mGoogleApiClient;
     private Boolean alreadySet = false;
     private Location mLastLocation;
     private LatLng currentCoordinates;
+    private boolean checkRadius = false;
+
+
+    private Vector<Marker> busMarker = new Vector<Marker>();
+    private Vector<Marker> velohMarker = new Vector<Marker>();
+
+
 
     private Vector<VelohStation> velohStations = new Vector<VelohStation>() ;
     private Vector<BusStop> busstops = new Vector<BusStop>();
@@ -53,6 +64,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        ToggleButton toggle = (ToggleButton) findViewById(R.id.toggleButton);
+
+
+        toggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    checkRadius = true;
+                } else {
+                    checkRadius = false;
+                }
+            }
+        });
 
         // Create an instance of GoogleAPIClient.
         if (mGoogleApiClient == null) {
@@ -109,6 +133,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 minDistance = result[0];
 
             }
+            if (checkRadius == true){
+                Log.i("Toggle","Toggled");
+                if(result[0] <= WALKINGRANGE){
+                    busMarker.get(i).setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)); //icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+                }
+            }
+            else {
+                busMarker.get(i).setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)); //icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+
+            }
         }
         Log.i("Distance",""+result[0]);
         LatLng nearestStop = new LatLng(busstops.get(shortestPath).getLatitude(),busstops.get(shortestPath).getLongitude());
@@ -122,6 +156,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         float minDistance = -1;
         int shortestPath=0;
 
+
+
         // USE of UNI LU Coordinates due to me not living in Lux
         LatLng ulu = new LatLng(49.626883, 6.159250);
         Location user = new Location("home");
@@ -130,11 +166,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             if (minDistance == -1){
                 minDistance = result[0];
             }
-            else if (minDistance > result[0]){
+            if (minDistance > result[0]){
                 shortestPath = i;
                 minDistance = result[0];
 
             }
+            if (checkRadius == true){
+                Log.i("Toggle","Toggled");
+                if(result[0] <= WALKINGRANGE){
+                    velohMarker.get(i).setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)); //icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+                }
+            }
+            else {
+                velohMarker.get(i).setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)); //icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+
+            }
+
         }
         Log.i("Distance",""+result[0]);
         LatLng nearestStop = new LatLng(velohStations.get(shortestPath).getLatitude(),velohStations.get(shortestPath).getLongitude());
@@ -224,22 +271,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 String[] stops = busContent.split("id=A=1@O=");
                 if (stops.length > 1) {
                     for (int i = 1; i < stops.length; i++){
-                        Log.i("WHAT",stops[i]);
+                      //  Log.i("WHAT",stops[i]);
                         // EXTRACT BUS DATA
                         String[] temp = stops[i].split("@X=");
                         String name = temp[0];
-                        Log.i("STOP",temp[0]);
-                        Log.i("STOP",temp[1]);
+                       // Log.i("STOP",temp[0]);
+                      //  Log.i("STOP",temp[1]);
 
                         String[] x = temp[1].split("@Y=");
-                        Log.i("x0",x[0]);
+                      //  Log.i("x0",x[0]);
                         Double longitude = Double.parseDouble(x[0].replace(",","."));
-                        Log.i("LAT",x[1]);
+                      //  Log.i("LAT",x[1]);
                         String[] y = x[1].split("@U=");
                         Double latitude = Double.parseDouble(y[0].replace(",","."));
 
                         BusStop stop = new BusStop(name,latitude,longitude);
-                        Log.i("STOP",stop.toString());
+                       // Log.i("STOP",stop.toString());
                         busstops.addElement(stop);
                     }
                 }
@@ -266,7 +313,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     Double lat = obj.getDouble("latitude");
                     Double lng = obj.getDouble("longitude");
                     VelohStation vs = new VelohStation(numb,name,address,lat,lng);
-                    Log.i("OUT",vs.toString());
+                  //  Log.i("OUT",vs.toString());
                     velohStations.addElement(vs);
                 }
 
@@ -285,21 +332,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             super.onPostExecute(result);
             if (velohStations.size() > 1){
                 for (int j =0; j< velohStations.size();j++){
-                    Log.i("Mark",velohStations.get(j).toString());
+                //    Log.i("Mark",velohStations.get(j).toString());
+
                     LatLng pos = new LatLng(velohStations.get(j).getLatitude(),velohStations.get(j).getLongitude());
-                    mMap.addMarker(new MarkerOptions().position(pos)
+                    MarkerOptions m = new MarkerOptions().position(pos)
                             .title(velohStations.get(j).getName())
-                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
-                    );
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
+
+                    velohMarker.addElement(mMap.addMarker(m));
                 }
             }
             if (busstops.size() > 1){
                 for (int k = 0; k< busstops.size(); k++){
                     LatLng pos = new LatLng(busstops.get(k).getLatitude(),busstops.get(k).getLongitude());
-                    mMap.addMarker(new MarkerOptions().position(pos)
+
+                    MarkerOptions mo = new MarkerOptions().position(pos)
                             .title(busstops.get(k).getName())
-                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE))
-                    );
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
+
+                    busMarker.addElement(mMap.addMarker(mo));
                 }
             }
             //progressDialog.dismiss();
@@ -325,8 +376,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             json = new String(buffer, "UTF-8");
 
-        Log.i("Out","ending here?");
-            Log.i("Out",json);
+      //  Log.i("Out","ending here?");
+          //  Log.i("Out",json);
         } catch (IOException ex) {
             ex.printStackTrace();
             return null;
