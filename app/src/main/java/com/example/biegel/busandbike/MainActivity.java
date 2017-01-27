@@ -1,6 +1,7 @@
 package com.example.biegel.busandbike;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.AsyncTask;
@@ -11,6 +12,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.CompoundButton;
+import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -107,6 +110,90 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.addMarker(new MarkerOptions().position(ulu).title("Marker at University of Luxemburg"));
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(ulu, 18));
 
+        GoogleMap.InfoWindowAdapter iwa = new GoogleMap.InfoWindowAdapter() {
+            @Override
+            public View getInfoWindow(Marker marker) {
+                View v = getLayoutInflater().inflate(R.layout.info_window,null);
+                TextView tvbhl = (TextView) v.findViewById(R.id.lineNumbersHL);
+                TextView tvb = (TextView) v.findViewById(R.id.lineNumbers);
+                TextView tvdhl = (TextView) v.findViewById(R.id.directionsHL);
+                TextView tvd = (TextView) v.findViewById(R.id.directions);
+
+                String stop = marker.getTitle();
+              //  new DetailOperation().execute(stop);
+                String lines = "";
+                String directions = "";
+
+                BusStop currentStop = null;
+                //INITIALIZE STOP
+                for (int i= 0;i<busstops.size();i++){
+                    if(busstops.get(i).getName() == stop){
+                        currentStop = busstops.get(i);
+                        break;
+                    }
+                }
+                if(currentStop!= null) {
+                    Vector<String> stopLines = currentStop.getBuslines();
+                    Vector<String> stopDirections = currentStop.getDirections();
+
+                    //ASSEMBLE DIRECTIONS
+                    for (int j = 0; j < stopLines.size(); j++) {
+                        lines += stopLines.get(j) + ", ";
+                    }
+
+                    //ASSEMBLE DIRECTIONS
+                    for (int k = 0; k < stopDirections.size(); k++) {
+                        directions += stopDirections.get(k) + ", ";
+                    }
+
+                }
+
+                tvbhl.setText(stop);
+                tvb.setText("BUSLINES:");
+
+                tvdhl.setText("DIRECTIONS");
+                tvd.setText(directions);
+
+                return null;
+            }
+
+            @Override
+            public View getInfoContents(Marker marker) {
+                return null;
+            }
+        };
+        mMap.setInfoWindowAdapter(iwa);
+
+
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                Toast.makeText(getApplicationContext(),marker.getTitle(),Toast.LENGTH_LONG);
+                Log.i("CHECKER","Klappt das?Vor For");
+
+                //for (int m =0; m< busMarker.size();m++){
+                   // if(busMarker.get(m) == marker) {
+                        for (int i = 0; i< busstops.size();i++) {
+                           // Log.i("CHECKER",busstops.size()+ " das?: "+marker.getTitle().length()+" mit "+busstops.get(i).getName().length());
+                            String mt = marker.getTitle();
+                            String bsn = busstops.get(i).getName();
+                           // if (bsn.contains( "Kirchberg, Uni Campus Kirchberg")){Log.i("alder",bsn);}
+                           // if (mt == "Kirchberg, Uni Campus Kirchberg"){Log.i("alderi",mt);}
+
+                            if (mt.contentEquals(bsn)) {
+                                int c = busstops.get(i).getCounter();
+                                c++;
+                                Log.i("CHECKER","Klappt das? "+marker.getTitle()+" mit "+busstops.get(i).getName());
+                                busstops.get(i).setCounter(c);
+                                Log.i("TAGG","C: "+busstops.get(i).getCounter());
+                            }
+                        }
+                    //}
+                //}
+                return false;
+            }
+        });
+
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
                 ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
 
@@ -114,6 +201,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
+
+    public  void showTable(View view){
+        Intent i = new Intent(this,TableLayoutActivity.class);
+        String[] extra = new String[busstops.size()];
+        for (int j =0;j< extra.length;j++){
+            extra[j]= busstops.get(j).toString();
+        }
+        i.putExtra("busStops",extra);
+        startActivity(i);
+    }
     public void searchNearestBustStop(View view){
         Log.i("BUTTON","BUTTON CLICKED");
         float[] result = new float[1];
@@ -236,6 +333,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
     }
+
 
     private class RestOperation extends AsyncTask<String, Void, Void> {
 
@@ -385,4 +483,54 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         return json;
 
     }
-}
+
+    private class DetailOperation extends AsyncTask<String, Void, Void> {
+        String data;
+        int buStopIndex;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+
+
+        }
+        @Override
+        protected Void doInBackground(String... params) {
+            String content = loadJSONFromAsset("LuxembourgBuses.json");
+            for (int x =0; x< busstops.size(); x++){
+                if(busstops.get(x).getName() == params[0]){
+                    buStopIndex = x;
+                    break;
+                }
+            }
+
+            try {
+                JSONArray arr = new JSONArray(content);
+                if (arr.length()>0){
+                    for (int i = 0; i<arr.length();i++){
+                        JSONObject obj = arr.getJSONObject(i);
+                        if (obj.getString("stop") == busstops.get(buStopIndex).getName()){
+                            String line = obj.getString("name");
+                            String direction = obj.getString("direction");
+
+                            busstops.get(buStopIndex).addBuslines(line);
+                            busstops.get(buStopIndex).addDirections(direction);
+
+                        }
+                    }
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+
+            return null;
+        }
+        @Override
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
+        }
+
+    }
+
+    }

@@ -49,4 +49,16 @@
         android:layout_centerHorizontal="true"
         android:id="@+id/toggleButton" />
 
+    <Button
+        android:text="Favorites"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignEnd="@+id/busStop"
+        android:layout_marginTop="24dp"
+        android:id="@+id/favorites"
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:backgroundTint="@android:color/holo_blue_dark"
+        android:onClick="showTable" />
+
 </RelativeLayout>
